@@ -1,0 +1,3 @@
+rootProject.name='CompressDemo'
+include ':app'
+include ':compressLib'
