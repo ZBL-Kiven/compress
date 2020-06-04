@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 29
@@ -36,10 +35,6 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.github.bumptech.glide:glide:4.10.0'
-    implementation 'com.nineoldandroids:library:2.4.0'
-    implementation 'com.google.android.material:material:1.1.0'
     implementation 'com.zj.repo:album:1.0.0'
     implementation project(':compressLib')
 }

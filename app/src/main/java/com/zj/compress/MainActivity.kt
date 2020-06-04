@@ -7,15 +7,14 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import com.zj.album.AlbumIns
-import com.zj.compress.R
 import com.zj.album.options.AlbumOptions
 
 @SuppressLint("SetTextI18n")
-class MainActivity : AppCompatActivity() {
+class MainActivity : FragmentActivity() {
 
     private var textView: TextView? = null
     private var tvTime: TextView? = null
@@ -50,53 +49,40 @@ class MainActivity : AppCompatActivity() {
 
     private fun startCompress(path: String) {
         startTime = System.currentTimeMillis()
-        VideoCompressUtils.create(this.application).setInputFilePath(path)
-            .setOutPutFileName("/file/${System.currentTimeMillis()}.mp4").setLevel(1600).build()
-            .start(object : VideoCompressUtils.CompressListener {
+        VideoCompressUtils.create(this.application).setInputFilePath(path).setOutPutFileName("/file/${System.currentTimeMillis()}.mp4").setLevel(1600).build().start(object : CompressListener {
 
-                override fun onSuccess(var1: String?) {
-                    tvTime?.text =
-                        "压缩用时 ：${((System.currentTimeMillis() - startTime) / 1200f).toInt()} 秒"
-                    tvEndSize?.text = "压缩后大小 ： ${FileUtils.getFormatSize(var1)}"
-                }
+                    override fun onSuccess(var1: String?) {
+                        tvTime?.text = "压缩用时 ：${((System.currentTimeMillis() - startTime) / 1200f).toInt()} 秒"
+                        tvEndSize?.text = "压缩后大小 ： ${FileUtils.getFormatSize(var1)}"
+                    }
 
-                override fun onCancel() {
-                    tvEndSize?.text = "已取消"
-                }
+                    override fun onCancel() {
+                        tvEndSize?.text = "已取消"
+                    }
 
-                override fun onProgress(var1: Float) {
-                    tvProgress?.text = "压缩进度 ：$var1"
-                }
+                    override fun onProgress(var1: Float) {
+                        tvProgress?.text = "压缩进度 ：$var1"
+                    }
 
-                override fun onError(var1: Int) {
-                    tvEndSize?.text = "压缩失败"
-                }
-            })
+                    override fun onError(var1: Int) {
+                        tvEndSize?.text = "压缩失败"
+                    }
+                })
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         start()
     }
 
     private fun start() {
-        AlbumIns.with(this)
-            .setOriginalPolymorphism(true)
-            .simultaneousSelection(true)
-            .maxSelectedCount(1)
-            .mimeTypes(AlbumOptions.pairOf(AlbumOptions.ofVideo()))
-            .videoSizeRange(100 * 1024, 200 * 1024 * 1024)
-            .start { _, data ->
-                path = data?.get(0)?.path ?: ""
-                tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(path)}"
-                tvEndSize?.text = ""
-                tvProgress?.text = ""
-                tvTime?.text = ""
-            }
+        AlbumIns.with(this).setOriginalPolymorphism(true).simultaneousSelection(true).maxSelectedCount(1).mimeTypes(AlbumOptions.pairOf(AlbumOptions.ofVideo())).videoSizeRange(100 * 1024, 200 * 1024 * 1024).start { _, data ->
+                    path = data?.get(0)?.path ?: ""
+                    tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(path)}"
+                    tvEndSize?.text = ""
+                    tvProgress?.text = ""
+                    tvTime?.text = ""
+                }
     }
 
     private fun startAlbum() {
@@ -104,13 +90,6 @@ class MainActivity : AppCompatActivity() {
         val t = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         if (i == PackageManager.PERMISSION_GRANTED && t == PackageManager.PERMISSION_GRANTED) {
             start()
-        } else ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ),
-            100
-        )
+        } else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 100)
     }
 }

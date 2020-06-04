@@ -25,7 +25,7 @@ public class VideoCompressUtils {
     private static final int CODE_PROGRESS = 4258;
     private static final int CODE_CANCELED = 4259;
     private static final int CODE_ERROR = 4260;
-    private VideoCompressUtils.CompressListener listener;
+    private CompressListener listener;
     private Handler handler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(@NonNull Message msg) {
             if (msg.what != CODE_PROGRESS) {
@@ -96,7 +96,7 @@ public class VideoCompressUtils {
         }
     }
 
-    public void start(VideoCompressUtils.CompressListener listener) {
+    public void start(CompressListener listener) {
         if (this.using) return;
         this.crackQNSdk();
         this.using = true;
@@ -149,16 +149,5 @@ public class VideoCompressUtils {
                 var6.printStackTrace();
             }
         }
-    }
-
-    public interface CompressListener {
-
-        void onProgress(float var1);
-
-        void onSuccess(String var1);
-
-        void onError(int var1);
-
-        void onCancel();
     }
 }

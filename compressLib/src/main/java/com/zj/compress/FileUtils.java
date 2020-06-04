@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class FileUtils {
-    public FileUtils() {
+    private FileUtils() {
     }
 
     private static long getFileSize(File file) {
