@@ -1,6 +1,9 @@
 package com.zj.compress;
 
+import android.annotation.TargetApi;
 import android.app.Application;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.IntRange;

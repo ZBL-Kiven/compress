@@ -6,7 +6,7 @@ public interface CompressListener {
 
     void onSuccess(String var1);
 
-    void onError(int var1);
+    void onError(int var1, String s);
 
     void onCancel();
 }

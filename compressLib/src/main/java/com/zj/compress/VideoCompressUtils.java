@@ -5,16 +5,21 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
+import com.qiniu.pili.droid.shortvideo.PLErrorCode;
 import com.qiniu.pili.droid.shortvideo.PLShortVideoTranscoder;
 import com.qiniu.pili.droid.shortvideo.PLVideoSaveListener;
+
+import java.lang.reflect.Field;
 
 @SuppressWarnings("unused")
 public class VideoCompressUtils {
@@ -44,15 +49,32 @@ public class VideoCompressUtils {
                         VideoCompressUtils.this.listener.onCancel();
                         break;
                     case CODE_ERROR:
-                        VideoCompressUtils.this.listener.onError(msg.arg1);
+                        int code = msg.arg1;
+                        Pair<Integer, String> e = (code == -1) ? new Pair<>(-1, "DROID_PLUGINS_ERROR") : getMsgWithErrorCode(code);
+                        VideoCompressUtils.this.listener.onError(e.first, e.second);
                 }
-
             }
         }
     };
 
+    private Pair<Integer, String> getMsgWithErrorCode(int code) {
+        try {
+            Class cls = PLErrorCode.class;
+            Field[] fields = cls.getFields();
+            for (Field f : fields) {
+                if (!f.isAccessible()) f.setAccessible(true);
+                int fc = (int) f.get(null);
+                if (fc == code) {
+                    return new Pair<>(-1, f.getName());
+                }
+            }
+        } catch (Exception e) {
+            Log.e("zj ----- reflect:", "the error code parsed fail, case :" + e.getMessage());
+        }
+        return new Pair<>(code, "UN_KNOW_ERROR");
+    }
+
     public static CompressConfig create(Application app) {
-        checkPermissions(app);
         if (mVCU == null) {
             mVCU = new VideoCompressUtils();
         }
@@ -62,15 +84,6 @@ public class VideoCompressUtils {
     }
 
     private VideoCompressUtils() {
-    }
-
-    @TargetApi(23)
-    private static void checkPermissions(Application app) {
-        boolean write = app.checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_GRANTED;
-        boolean read = app.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE") == PackageManager.PERMISSION_GRANTED;
-        if (!write || !read) {
-            throw new IllegalArgumentException("compressing abort ,because the necessary [WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE] permissions was denied !");
-        }
     }
 
     private void crackQNSdk() {
@@ -97,6 +110,7 @@ public class VideoCompressUtils {
     }
 
     public void start(CompressListener listener) {
+        checkPermissions(config.app);
         if (this.using) return;
         this.crackQNSdk();
         this.using = true;
@@ -119,25 +133,26 @@ public class VideoCompressUtils {
                 PLShortVideoTranscoder mShortVideoTranscoder = new PLShortVideoTranscoder(this.config.app, this.config.mInPath, this.config.getOutPath());
                 mShortVideoTranscoder.setMaxFrameRate(25);
                 mShortVideoTranscoder.transcode(Integer.parseInt(width), Integer.parseInt(height), this.config.mCompressLevel, false, new PLVideoSaveListener() {
+
+                    @Override
                     public void onSaveVideoSuccess(String s) {
                         Message msg = Message.obtain();
                         msg.what = 4257;
-
                         msg.obj = s;
                         VideoCompressUtils.this.handler.sendMessage(msg);
                     }
 
+                    @Override
                     public void onSaveVideoFailed(int errorCode) {
-                        Message msg = Message.obtain();
-                        msg.what = 4260;
-                        msg.arg1 = errorCode;
-                        VideoCompressUtils.this.handler.sendMessage(msg);
+                        sendError(errorCode);
                     }
 
+                    @Override
                     public void onSaveVideoCanceled() {
                         VideoCompressUtils.this.handler.sendEmptyMessage(4259);
                     }
 
+                    @Override
                     public void onProgressUpdate(float percentAg) {
                         Message msg = Message.obtain();
                         msg.what = 4258;
@@ -147,6 +162,31 @@ public class VideoCompressUtils {
                 });
             } catch (Exception var6) {
                 var6.printStackTrace();
+                sendError(-1);
+            }
+        }
+    }
+
+    private void sendError(int errorCode) {
+        Message msg = Message.obtain();
+        msg.what = 4260;
+        msg.arg1 = errorCode;
+        VideoCompressUtils.this.handler.sendMessage(msg);
+    }
+
+    @TargetApi(23)
+    private void checkPermissions(Application app) {
+        if (Build.VERSION.SDK_INT < 23) return;
+        try {
+            boolean write = app.checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_GRANTED;
+            boolean read = app.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE") == PackageManager.PERMISSION_GRANTED;
+            if (!write || !read) {
+                throw new IllegalArgumentException("compressing abort ,because the necessary [WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE] permissions was denied !");
+            }
+        } catch (Exception e) {
+            final CompressListener l = this.listener;
+            if (l != null) {
+                l.onError(443, e.getMessage());
             }
         }
     }
