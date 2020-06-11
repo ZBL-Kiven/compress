@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.zj.album.AlbumIns
 import com.zj.album.options.AlbumOptions
+import java.io.File
+import com.zj.compress.R
 
 @SuppressLint("SetTextI18n")
 class MainActivity : FragmentActivity() {
@@ -54,9 +56,12 @@ class MainActivity : FragmentActivity() {
             .start(object : CompressListener {
 
                 override fun onSuccess(var1: String?) {
-                    tvTime?.text =
-                        "压缩用时 ：${((System.currentTimeMillis() - startTime) / 1200f).toInt()} 秒"
-                    tvEndSize?.text = "压缩后大小 ： ${FileUtils.getFormatSize(var1)}"
+                    var1?.let {
+                        tvTime?.text =
+                            "压缩用时 ：${((System.currentTimeMillis() - startTime) / 1200f).toInt()} 秒"
+                        tvEndSize?.text = "压缩后大小 ： ${FileUtils.getFormatSize(it)}"
+                        File(it).delete()
+                    }
                 }
 
                 override fun onCancel() {
