@@ -2,9 +2,11 @@ package com.zj.compress;
 
 import android.annotation.TargetApi;
 import android.app.Application;
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,6 +21,8 @@ import com.qiniu.pili.droid.shortvideo.PLErrorCode;
 import com.qiniu.pili.droid.shortvideo.PLShortVideoTranscoder;
 import com.qiniu.pili.droid.shortvideo.PLVideoSaveListener;
 
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
 
 @SuppressWarnings("unused")
@@ -31,7 +35,7 @@ public class VideoCompressUtils {
     private static final int CODE_CANCELED = 4259;
     private static final int CODE_ERROR = 4260;
     private CompressListener listener;
-    private Handler handler = new Handler(Looper.getMainLooper()) {
+    private final Handler handler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(@NonNull Message msg) {
             if (msg.what != CODE_PROGRESS) {
                 VideoCompressUtils.this.using = false;
@@ -59,7 +63,7 @@ public class VideoCompressUtils {
 
     private Pair<Integer, String> getMsgWithErrorCode(int code) {
         try {
-            Class cls = PLErrorCode.class;
+            Class<?> cls = PLErrorCode.class;
             Field[] fields = cls.getFields();
             for (Field f : fields) {
                 if (!f.isAccessible()) f.setAccessible(true);
@@ -116,7 +120,11 @@ public class VideoCompressUtils {
         this.using = true;
         this.listener = listener;
         MediaMetadataRetriever rt = new MediaMetadataRetriever();
-        rt.setDataSource(this.config.mInPath);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            rt.setDataSource(this.config.app, Uri.parse(this.config.mInPath));
+        } else {
+            rt.setDataSource(this.config.mInPath);
+        }
         String height = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
         String width = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
         String bitrate = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
