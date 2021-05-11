@@ -63,4 +63,15 @@ public class FileUtils {
             }
         }
     }
+
+    public static void delete(String path) {
+        File file = new File(path);
+        if (file != null) {
+            if (file.exists() && file.delete()) {
+                Log.i("Z-Compress Sdk", "the temp file " + path + " has delete success!");
+            } else {
+                Log.i("Z-Compress Sdk", "the temp file " + path + " was delete failed!");
+            }
+        }
+    }
 }

@@ -1,9 +1,10 @@
 package com.zj.compress;
 
-import android.annotation.TargetApi;
 import android.app.Application;
-import android.content.pm.PackageManager;
-import android.os.Build;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 
 import androidx.annotation.IntRange;
@@ -12,20 +13,21 @@ import java.io.File;
 
 @SuppressWarnings("unused,WeakerAccess")
 public class CompressConfig {
-    private String mLocalDirPath;
+    private final String mLocalDirPath;
     private String mOutPath;
-    String mInPath;
+    Uri mInPath;
+    String mDataPath;
     int mCompressLevel;
     Application app;
     VideoCompressUtils vcu;
 
     public CompressConfig(Application c, VideoCompressUtils vcu) throws NullPointerException {
-        File f = c.getExternalFilesDir("");
+        File f = c.getCacheDir();
         if (f == null) {
             throw new NullPointerException("");
         } else {
             this.app = c;
-            this.vcu = vcu;
+            CompressConfig.this.vcu = vcu;
             this.mLocalDirPath = f.getPath();
         }
     }
@@ -35,13 +37,19 @@ public class CompressConfig {
         return this;
     }
 
-    public CompressConfig setInputFilePath(String path) {
-        if (!(new File(path)).exists()) {
-            throw new IllegalArgumentException("the input file [" + path + "] was not exits!! ");
+    public CompressConfig setInputFilePath(Uri uri) {
+        assert uri != null;
+        if (uri.getScheme() == null || uri.getScheme().equals("file")) {
+            String path = uri.getPath();
+            if (path == null || !(new File(path)).exists()) {
+                throw new IllegalArgumentException("the input file [" + path + "] was not exits!! ");
+            }
+            mDataPath = path;
         } else {
-            this.mInPath = path;
-            return this;
+            mDataPath = getFilePathFromContentUri(app, uri);
         }
+        this.mInPath = uri;
+        return this;
     }
 
     public CompressConfig setOutPutFileName(String name) {
@@ -54,10 +62,30 @@ public class CompressConfig {
     }
 
     public VideoCompressUtils build() {
-        return this.vcu;
+        return vcu;
     }
 
     String getOutPath() {
         return this.mLocalDirPath + this.mOutPath;
+    }
+
+    private static String getFilePathFromContentUri(Context context, Uri contentUri) {
+        String scheme = contentUri.getScheme();
+        if (scheme == null || !scheme.equals("content")) return contentUri.getPath();
+        Cursor cursor = null;
+        try {
+            String[] pj = {MediaStore.Images.Media.DATA};
+            cursor = context.getContentResolver().query(contentUri, pj, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
+                cursor.moveToFirst();
+                return cursor.getString(column_index);
+            }
+            return "";
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 }

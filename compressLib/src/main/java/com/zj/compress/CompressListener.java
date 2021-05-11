@@ -2,11 +2,13 @@ package com.zj.compress;
 
 public interface CompressListener {
 
-    void onProgress(float var1);
+    boolean onFilePatched(final String path);
 
-    void onSuccess(String var1);
+    void onProgress(float fraction);
 
-    void onError(int var1, String s);
+    void onSuccess(String path);
+
+    void onError(int errCode, String s);
 
     void onCancel();
 }
