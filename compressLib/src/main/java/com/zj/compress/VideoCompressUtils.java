@@ -88,7 +88,19 @@ public class VideoCompressUtils {
         } catch (Exception e) {
             Log.e("zj ----- reflect:", "the error code parsed fail, case :" + e.getMessage());
         }
-        return new Pair<>(code, "UN_KNOW_ERROR");
+        String s;
+        switch (code) {
+            case -100:
+                s = "exchange error";
+                break;
+            case -101:
+                s = "permission denied";
+                break;
+            default:
+                s = "UN_KNOW_ERROR";
+
+        }
+        return new Pair<>(code, s);
     }
 
     public static CompressConfig create(Application app) {
@@ -125,43 +137,55 @@ public class VideoCompressUtils {
     }
 
     public void start(CompressListener l) {
-        checkPermissions(config.app);
         if (this.using) return;
         this.crackQNSdk();
         this.using = true;
         listener = l;
-        MediaMetadataRetriever rt = new MediaMetadataRetriever();
-        rt.setDataSource(this.config.app, this.config.mInPath);
-        final int height = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-        final int width = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-        String bitrate = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-        int level = config.mCompressLevel;
-        double pob = level * 1.0D / Long.parseLong(bitrate);
+        skipOrReturnAndGetVideoInfo();
+    }
+
+    private void skipOrReturnAndGetVideoInfo() {
         boolean permissions = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             boolean hasR = config.app.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
             boolean hasW = config.app.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
             permissions = hasR && hasW;
         }
-        if (pob >= 0.85 || !permissions) {
+        if (!permissions) {
+            sendError(-101);
+            return;
+        }
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            changeExternalFileData(new OnExchangeResult() {
+                @Override
+                public void onResult(String path) {
+                    if (TextUtils.isEmpty(path)) {
+                        sendError(-100);
+                        VideoCompressUtils.this.using = false;
+                    } else {
+                        VideoCompressUtils.this.config.mDataPath = path;
+                        parseVideoInfo(true);
+                    }
+                }
+            });
+        } else {
+            parseVideoInfo(false);
+        }
+    }
+
+    private void parseVideoInfo(final boolean fromTransFile) {
+        String path = this.config.mDataPath;
+        MediaMetadataRetriever rt = new MediaMetadataRetriever();
+        rt.setDataSource(this.config.app, Uri.parse(path));
+        final int height = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+        final int width = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+        String bitrate = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
+        int level = config.mCompressLevel;
+        double pob = level * 1.0D / Long.parseLong(bitrate);
+        if (pob >= 0.85) {
             skipCompress();
         } else {
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                changeExternalFileData(new OnExchangeResult() {
-                    @Override
-                    public void onResult(String path) {
-                        if (TextUtils.isEmpty(path)) {
-                            sendError(-100);
-                            VideoCompressUtils.this.using = false;
-                        } else {
-                            VideoCompressUtils.this.config.mDataPath = path;
-                            startCompress(width, height, true);
-                        }
-                    }
-                });
-            } else {
-                startCompress(width, height, false);
-            }
+            startCompress(width, height, fromTransFile);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.zj.compress
+package com.zj.test
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -14,6 +14,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.zj.album.AlbumIns
 import com.zj.album.options.AlbumOptions
+import com.zj.compress.CompressListener
+import com.zj.compress.FileUtils
+import com.zj.compress.VideoCompressUtils
 import java.io.File
 
 @SuppressLint("SetTextI18n")
@@ -24,7 +27,7 @@ class MainActivity : FragmentActivity() {
     private var tvStartSize: TextView? = null
     private var tvProgress: TextView? = null
     private var tvEndSize: TextView? = null
-    private var path: String = ""
+    private var path: String = "/storage/emulated/0/DCIM/Camera/VID_20210510_164153.mp4"
     private var contentUri: Uri? = null
     private var startTime: Long = 0
 
@@ -42,6 +45,7 @@ class MainActivity : FragmentActivity() {
         }
 
         findViewById<View>(R.id.btn_start).setOnClickListener {
+            if (path.isNotEmpty()) contentUri = Uri.parse(path)
             if (contentUri == null || path.isEmpty()) {
                 Toast.makeText(this, "please select a video first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

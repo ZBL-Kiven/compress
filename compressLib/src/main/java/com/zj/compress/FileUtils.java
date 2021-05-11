@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class FileUtils {
-    private FileUtils() {
-    }
+    private FileUtils() { }
 
     private static long getFileSize(File file) {
         long size = 0L;
@@ -66,12 +65,10 @@ public class FileUtils {
 
     public static void delete(String path) {
         File file = new File(path);
-        if (file != null) {
-            if (file.exists() && file.delete()) {
-                Log.i("Z-Compress Sdk", "the temp file " + path + " has delete success!");
-            } else {
-                Log.i("Z-Compress Sdk", "the temp file " + path + " was delete failed!");
-            }
+        if (file.exists() && file.delete()) {
+            Log.i("Z-Compress Sdk", "the temp file " + path + " has delete success!");
+        } else {
+            Log.i("Z-Compress Sdk", "the temp file " + path + " was delete failed!");
         }
     }
 }
