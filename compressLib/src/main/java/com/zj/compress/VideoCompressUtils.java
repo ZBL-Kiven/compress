@@ -262,7 +262,7 @@ public class VideoCompressUtils {
     private void skipCompress() {
         Message msg = Message.obtain();
         msg.what = CODE_SUCCESS;
-        msg.obj = config.mInPath.toString();
+        msg.obj = config.mDataPath;
         VideoCompressUtils.this.handler.sendMessage(msg);
     }
 

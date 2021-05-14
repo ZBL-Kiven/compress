@@ -1,4 +1,4 @@
-package com.zj.test
+package com.zj.compress_test
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -14,9 +14,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.zj.album.AlbumIns
 import com.zj.album.options.AlbumOptions
-import com.zj.compress.CompressListener
 import com.zj.compress.FileUtils
 import com.zj.compress.VideoCompressUtils
+import com.zj.compress.CompressListener
 import java.io.File
 
 @SuppressLint("SetTextI18n")
