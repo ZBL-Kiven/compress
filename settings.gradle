@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            credentials {
+                username 'iRqFxj'
+                password 'fMTKbe0WP6'
+            }
+            url 'https://repo.rdc.aliyun.com/repository/129757-release-BhhDH6/'
+        }
+    }
+}
+rootProject.name = "ZCompress"
+include ':app'
+include ':compressLib'
