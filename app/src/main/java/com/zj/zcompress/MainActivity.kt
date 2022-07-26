@@ -2,6 +2,8 @@ package com.zj.zcompress
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -19,6 +21,7 @@ import com.zj.album.nModule.FileInfo
 import com.zj.compress.CompressUtils
 import com.zj.compress.videos.FileUtils
 import com.zj.compress.videos.CompressListener
+import java.io.File
 
 
 @SuppressLint("SetTextI18n")
@@ -35,6 +38,7 @@ class MainActivity : FragmentActivity() {
     private lateinit var iv3: ImageView
     private var fileInfo: FileInfo? = null
     private var startTime: Long = 0
+    private val fileSelectorCode = 0x1212
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +54,10 @@ class MainActivity : FragmentActivity() {
         iv3 = findViewById(R.id.iv3)
 
         findViewById<View>(R.id.btn_choose).setOnClickListener {
-            startAlbum()
+
+            //                        startAlbum()
+
+            openFileSelector()
         }
 
         findViewById<View>(R.id.btn_start).setOnClickListener {
@@ -62,15 +69,43 @@ class MainActivity : FragmentActivity() {
                 }
             } ?: Toast.makeText(this, "please select a video first", Toast.LENGTH_SHORT).show()
         }
+
+
+    }
+
+    private fun openFileSelector() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(intent, fileSelectorCode)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == fileSelectorCode) {
+            if (resultCode == Activity.RESULT_OK) {
+                val uri: Uri? = data?.data
+                transaction(uri)
+            }
+        }
+    }
+
+    private fun transaction(uri: Uri?) {
+        CompressUtils.with(this).load(uri).transForAndroidQ {
+            if (it?.path != null) {
+                Log.e("------- ", "${File(it.path ?: "").exists()}")
+            }
+        }
     }
 
     private fun startCompressImage(uri: Uri?) {
         CompressUtils.with(this).load(uri).asImage().ignoreBy(1024).setQuality(80).start(object : com.zj.compress.images.CompressListener {
 
-            override fun onFileTransform(info: com.zj.compress.FileInfo?, compressEnable: Boolean) {
-                Glide.with(this@MainActivity).load(fileInfo?.path).into(this@MainActivity.iv2)
-                runOnUiThread { tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(fileInfo?.path)}" }
-                Log.e("------ ", "file transfer ==> ${fileInfo?.path}")
+            override fun onFileTransform(info: com.zj.compress.FileInfo.ImageFileInfo?, compressEnable: Boolean) {
+                Glide.with(this@MainActivity).load(info?.path).into(this@MainActivity.iv2)
+                runOnUiThread { tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(info?.path)}  /  ${info?.width}X${info?.height}" }
+                Log.e("------ ", "file transfer ==> ${info?.path}")
             }
 
             override fun onStart() {
@@ -115,9 +150,9 @@ class MainActivity : FragmentActivity() {
                 tvEndSize?.text = "压缩失败 ,case: $s"
             }
 
-            override fun onFileTransform(info: com.zj.compress.FileInfo?, compressEnable: Boolean) {
+            override fun onFileTransform(info: com.zj.compress.FileInfo.VideoFileInfo?, compressEnable: Boolean) {
                 Glide.with(this@MainActivity).load(fileInfo?.path).into(this@MainActivity.iv2)
-                runOnUiThread { tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(fileInfo?.path)}" }
+                runOnUiThread { tvStartSize?.text = "压缩前大小 ： ${FileUtils.getFormatSize(fileInfo?.path)}  /  ${info?.width}X${info?.height}" }
             }
         })
     }

@@ -1,6 +1,6 @@
 package com.zj.compress;
 
-public interface OnExchangeResult {
+public interface OnExchangeResult<T extends FileInfo> {
 
-    void onResult(FileInfo info);
+    void onResult(T info);
 }

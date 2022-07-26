@@ -8,16 +8,17 @@ import androidx.annotation.IntRange;
 import java.io.File;
 
 import com.zj.compress.DataSource;
+import com.zj.compress.FileInfo;
 
 public class VideoCompressBuilder {
 
     final Context context;
-    final DataSource dataSource;
+    final DataSource<FileInfo.VideoFileInfo> dataSource;
     private final String mLocalDirPath;
     private String mOutPath;
     int mCompressLevel;
 
-    public VideoCompressBuilder(Context context, DataSource dataSource) throws NullPointerException {
+    public VideoCompressBuilder(Context context, DataSource<FileInfo.VideoFileInfo> dataSource) throws NullPointerException {
         this.context = context;
         this.dataSource = dataSource;
         File f = context.getCacheDir();

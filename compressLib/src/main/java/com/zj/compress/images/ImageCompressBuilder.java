@@ -1,10 +1,13 @@
 package com.zj.compress.images;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import com.zj.compress.CompressLog;
 import com.zj.compress.DataSource;
+import com.zj.compress.FileInfo;
 
 import java.io.File;
 
@@ -12,13 +15,14 @@ import java.io.File;
 public class ImageCompressBuilder {
 
     final Context context;
-    final DataSource dataSource;
-    String mTargetPath = "" + System.currentTimeMillis();
+    final DataSource<FileInfo.ImageFileInfo> dataSource;
+    String mTargetPath = "temp_" + System.currentTimeMillis();
     int mLeastCompressSize = 100;
     int quality = 100;
     int sampleSize = 1;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
-    public ImageCompressBuilder(Context context, DataSource dataSource) {
+    public ImageCompressBuilder(Context context, DataSource<FileInfo.ImageFileInfo> dataSource) {
         this.context = context;
         this.dataSource = dataSource;
     }
@@ -71,9 +75,9 @@ public class ImageCompressBuilder {
         dataSource.start(path -> {
             File f = new ImgCompressUtils(this, compressListener).get(context);
             if (f != null && f.exists() && !f.isDirectory()) {
-                compressListener.onSuccess(f.getPath());
+                handler.post(() -> compressListener.onSuccess(f.getPath()));
             } else {
-                compressListener.onError(404, new NullPointerException("no file found!"));
+                handler.post(() -> compressListener.onError(404, new NullPointerException("no file found!")));
             }
         });
     }

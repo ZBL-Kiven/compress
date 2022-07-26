@@ -4,7 +4,7 @@ import com.zj.compress.FileInfo;
 
 public interface CompressListener {
 
-    void onFileTransform(final FileInfo info, final boolean compressEnable);
+    void onFileTransform(final FileInfo.VideoFileInfo info, final boolean compressEnable);
 
     void onProgress(float fraction);
 

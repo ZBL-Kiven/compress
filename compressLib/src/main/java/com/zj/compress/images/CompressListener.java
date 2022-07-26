@@ -5,7 +5,7 @@ import com.zj.compress.FileInfo;
 public interface CompressListener {
 
 
-    void onFileTransform(final FileInfo info, boolean compressEnable);
+    void onFileTransform(final FileInfo.ImageFileInfo info, boolean compressEnable);
 
     /**
      * Fired when the compression is started, override to handle in your own code

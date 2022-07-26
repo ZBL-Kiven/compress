@@ -15,8 +15,8 @@ import java.io.File;
 @SuppressWarnings("unused")
 public class CompressUtils {
 
-    private DataSource mDataSource;
     private final Context context;
+    private Uri originalUri;
 
     public CompressUtils(Context context) {
         this.context = context.getApplicationContext();
@@ -38,22 +38,25 @@ public class CompressUtils {
         if (TextUtils.isEmpty(uri.getScheme())) {
             uri = Uri.parse(ContentResolver.SCHEME_FILE + "://" + uri.getPath());
         }
-        mDataSource = new DataSource(context, uri);
+        this.originalUri = uri;
         return this;
     }
 
     public ImageCompressBuilder asImage() {
-        if (mDataSource == null) throw new NullPointerException("please call load() before!");
+        if (originalUri == null) throw new NullPointerException("please call load() before!");
+        DataSource<FileInfo.ImageFileInfo> mDataSource = new DataSource<>(context, new FileInfo.ImageFileInfo(originalUri));
         return new ImageCompressBuilder(context, mDataSource);
     }
 
     public VideoCompressBuilder asVideo() {
-        if (mDataSource == null) throw new NullPointerException("please call load() before!");
+        if (originalUri == null) throw new NullPointerException("please call load() before!");
+        DataSource<FileInfo.VideoFileInfo> mDataSource = new DataSource<>(context, new FileInfo.VideoFileInfo(originalUri));
         return new VideoCompressBuilder(context, mDataSource);
     }
 
     public void transForAndroidQ(Consumer<FileInfo> consumer) {
-        if (mDataSource == null) throw new NullPointerException("please call load() before!");
+        if (originalUri == null) throw new NullPointerException("please call load() before!");
+        DataSource<FileInfo> mDataSource = new DataSource<>(context, new FileInfo(originalUri));
         mDataSource.start(consumer);
     }
 }

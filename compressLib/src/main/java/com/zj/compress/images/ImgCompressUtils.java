@@ -15,6 +15,7 @@ import androidx.annotation.WorkerThread;
 
 import com.zj.compress.CompressLog;
 import com.zj.compress.DataSource;
+import com.zj.compress.FileInfo;
 import com.zj.compress.videos.FileUtils;
 
 import java.io.File;
@@ -31,7 +32,7 @@ class ImgCompressUtils implements Handler.Callback {
     private static final int MSG_COMPRESS_ERROR = 2;
     private static final int MSG_COMPRESS_MULTIPLE_SUCCESS = 3;
     private final String mTargetPath;
-    private final DataSource dataSource;
+    private final DataSource<FileInfo.ImageFileInfo> dataSource;
     private final int mLeastCompressSize;
     private final CompressListener mCompressListener;
     private final Handler mHandler;

@@ -1,8 +1,6 @@
 package com.zj.compress.videos;
 
 import android.content.SharedPreferences;
-import android.media.MediaMetadataRetriever;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -16,6 +14,7 @@ import com.qiniu.pili.droid.shortvideo.PLErrorCode;
 import com.qiniu.pili.droid.shortvideo.PLShortVideoTranscoder;
 import com.qiniu.pili.droid.shortvideo.PLVideoSaveListener;
 import com.zj.compress.CompressLog;
+import com.zj.compress.FileInfo;
 
 import java.lang.reflect.Field;
 
@@ -139,36 +138,24 @@ public class VideoCompressUtils {
     }
 
     private void parseVideoInfo() {
-        String path = this.getPath();
-        String bitrate = null;
-        int height = 0;
-        int width = 0;
-        try {
-            MediaMetadataRetriever rt = new MediaMetadataRetriever();
-            rt.setDataSource(this.config.context, Uri.parse(path));
-            height = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-            width = Integer.parseInt(rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-            bitrate = rt.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (bitrate == null) {
+        FileInfo.VideoFileInfo info = config.dataSource.fileInfo;
+        if (info.getBitrate() <= 0) {
             skipCompress();
             return;
         }
         int level = config.mCompressLevel;
-        double pob = level * 1.0D / Long.parseLong(bitrate);
+        double pob = level * 1.0D / info.getBitrate();
         if (pob >= 0.85) {
             skipCompress();
         } else {
             this.crackQNSdk();
-            startCompress(width, height);
+            startCompress(info.getWidth(), info.getHeight());
         }
     }
 
     private void startCompress(int width, int height) {
         try {
-            PLShortVideoTranscoder mShortVideoTranscoder = new PLShortVideoTranscoder(this.config.context, this.getPath(), this.config.getOutPath());
+            PLShortVideoTranscoder mShortVideoTranscoder = new PLShortVideoTranscoder(this.config.context, getPath(), this.config.getOutPath());
             mShortVideoTranscoder.setMaxFrameRate(25);
             mShortVideoTranscoder.transcode(width, height, this.config.mCompressLevel, new PLVideoSaveListener() {
 

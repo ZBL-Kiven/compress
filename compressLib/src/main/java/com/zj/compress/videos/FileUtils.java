@@ -1,6 +1,8 @@
 package com.zj.compress.videos;
 
 
+import android.net.Uri;
+
 import com.zj.compress.CompressLog;
 
 import java.io.File;
@@ -13,7 +15,6 @@ public class FileUtils {
 
     private static long getFileSize(File file) {
         long size = 0L;
-
         try {
             if (file.exists()) {
                 FileInputStream fis = new FileInputStream(file);
@@ -21,7 +22,6 @@ public class FileUtils {
             } else {
                 CompressLog.e("cannot get file size ,the file is not exists");
             }
-
             return size;
         } catch (Exception var4) {
             var4.printStackTrace();
@@ -30,7 +30,8 @@ public class FileUtils {
     }
 
     public static String getFormatSize(String path) {
-        long size = getFileSize(new File(path));
+        Uri uri = Uri.parse(path);
+        long size = getFileSize(new File(uri.getPath()));
         return getFormatSize(size);
     }
 
