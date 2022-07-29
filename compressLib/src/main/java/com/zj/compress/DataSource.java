@@ -91,9 +91,7 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
     public void run() {
         boolean permissions = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            boolean hasR = context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-            boolean hasW = context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-            permissions = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? hasR : hasR && hasW;
+            permissions = context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
         if (!permissions) {
             CompressLog.e("permission denied!!");
