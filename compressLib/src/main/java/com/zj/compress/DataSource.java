@@ -94,7 +94,7 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
             permissions = context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
         if (!permissions) {
-            CompressLog.e("permission denied!!");
+            CompressLog.e("permission denied for context : " + context + " !!");
             onExecutor.accept(fileInfo);
             return;
         }
