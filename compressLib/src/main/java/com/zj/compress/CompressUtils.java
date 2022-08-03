@@ -3,6 +3,8 @@ package com.zj.compress;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.core.util.Consumer;
@@ -36,7 +38,12 @@ public class CompressUtils {
 
     public CompressUtils load(Uri uri) {
         if (TextUtils.isEmpty(uri.getScheme())) {
-            uri = Uri.parse(ContentResolver.SCHEME_FILE + "://" + uri.getPath());
+            File f = new File(uri.getPath());
+            if (f.exists()) {
+                uri = Uri.fromFile(f);
+            } else {
+                uri = Uri.parse(ContentResolver.SCHEME_FILE + "://" + uri.getPath());
+            }
         }
         this.originalUri = uri;
         return this;
@@ -54,9 +61,9 @@ public class CompressUtils {
         return new VideoCompressBuilder(context, mDataSource);
     }
 
-    public void transForAndroidQ(Consumer<FileInfo> consumer) {
+    public void transForAndroidQ(final Consumer<FileInfo> consumer) {
         if (originalUri == null) throw new NullPointerException("please call load() before!");
         DataSource<FileInfo> mDataSource = new DataSource<>(context, new FileInfo(originalUri));
-        mDataSource.start(consumer);
+        mDataSource.start((FileInfo info) -> new Handler(Looper.getMainLooper()).post(() -> consumer.accept(info)));
     }
 }

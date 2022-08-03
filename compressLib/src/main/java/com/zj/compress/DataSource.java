@@ -48,9 +48,8 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
         }
     }
 
-
     private void patchFileInfoFromUri(Context context, Uri uri, FileInfo fileInfo) {
-        if (fileInfo.mimeType.contentType == FileMimeInfo.CONTENT_IMAGE) {
+        if (fileInfo.mimeType.contentType == FileInfo.CONTENT_IMAGE) {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             try {
@@ -61,7 +60,7 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else if (fileInfo.mimeType.contentType == FileMimeInfo.CONTENT_VIDEO) {
+        } else if (fileInfo.mimeType.contentType == FileInfo.CONTENT_VIDEO) {
             MediaMetadataRetriever retriever = new MediaMetadataRetriever();
             retriever.setDataSource(context, uri);
             String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);

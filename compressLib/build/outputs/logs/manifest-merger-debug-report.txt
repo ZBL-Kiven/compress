@@ -1,8 +1,8 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-8:12
-INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-8:12
-INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-8:12
+ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-10:12
+INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-10:12
+INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:1-10:12
 	package
 		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:3:5-30
 		INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml
@@ -12,15 +12,15 @@ INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidMa
 	xmlns:android
 		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:1:11-69
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:5:5-6:40
+ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:5:5-7:40
 	tools:ignore
-		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:6:9-37
+		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:7:9-37
 	android:name
-		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:5:22-78
+		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:6:9-65
 uses-permission#android.permission.INTERNET
-ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:7:5-67
+ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:8:5-67
 	android:name
-		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:7:22-64
+		ADDED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml:8:22-64
 uses-sdk
 INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/zjj/StudioProjects/ZCompress/compressLib/src/main/AndroidManifest.xml

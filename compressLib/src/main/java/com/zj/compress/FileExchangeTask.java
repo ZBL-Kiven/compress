@@ -2,8 +2,10 @@ package com.zj.compress;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -34,9 +36,28 @@ class FileExchangeTask<T extends FileInfo> {
         FileInputStream fis = null;
         OutputStream to = null;
         try {
-            ParcelFileDescriptor descriptor = contentResolver.openFileDescriptor(fi.originalPath, "r");
+            String prefix = null;
+            Uri uri = fi.originalPath;
+            try (Cursor cursor = contentResolver.query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+                    prefix = cursor.getString(index);
+                    if (prefix.contains(suffix)) {
+                        prefix = prefix.replace(suffix, "");
+                    } else if (prefix.contains(".") && !prefix.startsWith(".")) {
+                        int sub = prefix.lastIndexOf('.');
+                        prefix = prefix.substring(0, sub);
+                    } else {
+                        prefix = prefix.replaceAll("\\.", "_");
+                    }
+                }
+            }
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = "transform_" + System.currentTimeMillis();
+            }
+            fi.fileName = prefix;
+            ParcelFileDescriptor descriptor = contentResolver.openFileDescriptor(uri, "r");
             if (descriptor == null) {
-
                 return;
             }
             FileDescriptor fd = descriptor.getFileDescriptor();
@@ -46,11 +67,9 @@ class FileExchangeTask<T extends FileInfo> {
             if (!file.mkdirs() && !file.exists()) {
                 return;
             }
-            String fileName = System.currentTimeMillis() + suffix;
-            File f1 = new File(file, fileName);
-            if (!f1.exists() && !f1.createNewFile()) {
-                return;
-            }
+            String fileName = prefix + suffix;
+            File f1 = getGUFile(file, fileName, 0);
+            if (f1 == null) throw new NullPointerException("Cannot create file for path : " + file.getPath() + fileName);
             to = new FileOutputStream(f1);
             byte[] b = new byte[1024];
             int c;
@@ -69,5 +88,20 @@ class FileExchangeTask<T extends FileInfo> {
             }
             result.onResult(fi);
         }
+    }
+
+    private File getGUFile(File parent, String fileName, int index) {
+        File f1 = new File(parent, fileName);
+        if (f1.exists() && f1.length() > 0) {
+            int next = index + 1;
+            return getGUFile(parent, fileName + "(" + next + ")", next);
+        }
+        try {
+            if (!f1.exists() && !f1.createNewFile()) {
+                return null;
+            }
+        } catch (Exception ignored) {
+        }
+        return f1;
     }
 }

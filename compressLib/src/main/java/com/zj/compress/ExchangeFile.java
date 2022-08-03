@@ -41,18 +41,18 @@ class ExchangeFile<T extends FileInfo> {
         @Nullable String scheme = origin.getScheme();
         try {
             if (scheme == null || scheme.equals(ContentResolver.SCHEME_FILE)) {
-                if (isQForest) { // from Q and scheme as file
+                if (!new File(origin.getPath()).exists() && isQForest) { // from Q and scheme as file
                     Uri result;
-                    if (fileInfo.mimeType.contentType == FileMimeInfo.CONTENT_IMAGE) {
+                    if (fileInfo.mimeType.contentType == FileInfo.CONTENT_IMAGE) {
                         Uri external = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                        result = queryContentUri(context, external, origin);
-                    } else if (fileInfo.mimeType.contentType == FileMimeInfo.CONTENT_VIDEO) {
+                        result = queryContentUri(resolver, external, origin);
+                    } else if (fileInfo.mimeType.contentType == FileInfo.CONTENT_VIDEO) {
                         Uri external = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                        result = queryContentUri(context, external, origin);
+                        result = queryContentUri(resolver, external, origin);
                     } else {
                         @SuppressLint("InlinedApi") // [isQForest] checked.
                         Uri external = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL);
-                        result = queryContentUri(context, external, origin);
+                        result = queryContentUri(resolver, external, origin);
                     }
                     if (result == null) {
                         throw new IllegalArgumentException("Could not parse the uri : " + origin + " to content provider!");
@@ -64,6 +64,7 @@ class ExchangeFile<T extends FileInfo> {
                 } else {
                     fileInfo.path = origin.getPath();
                     fileInfo.fromTransFile = false;
+                    setFileNameFromOriginalPath(fileInfo);
                     exchangeResult.onResult(fileInfo);
                 }
             } else if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
@@ -76,6 +77,7 @@ class ExchangeFile<T extends FileInfo> {
                     if (result != null) {
                         fileInfo.path = result.getPath();
                         fileInfo.fromTransFile = false;
+                        setFileNameFromOriginalPath(fileInfo);
                         exchangeResult.onResult(fileInfo);
                     } else {
                         fileInfo.originalPath = origin;
@@ -90,11 +92,11 @@ class ExchangeFile<T extends FileInfo> {
         }
     }
 
-    private Uri queryContentUri(Context context, Uri external, Uri uri) {
+    private Uri queryContentUri(ContentResolver resolver, Uri external, Uri uri) {
         String[] projection = new String[]{MediaStore.MediaColumns._ID};
         String selection = MediaStore.Files.FileColumns.DATA + "=?";
         String[] args = new String[]{uri.getPath()};
-        try (Cursor cursor = context.getContentResolver().query(external, projection, selection, args, null)) {
+        try (Cursor cursor = resolver.query(external, projection, selection, args, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int columnId = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
                 return ContentUris.withAppendedId(external, cursor.getLong(columnId));
@@ -115,28 +117,52 @@ class ExchangeFile<T extends FileInfo> {
         return null;
     }
 
+    private void setFileNameFromOriginalPath(FileInfo fi) {
+        String suffix = fi.mimeType.suffix;
+        File file = new File(fi.path);
+        String prefix = file.getName();
+        if (prefix.contains(suffix)) {
+            prefix = prefix.replace(suffix, "");
+        } else if (prefix.contains(".") && !prefix.startsWith(".")) {
+            int sub = prefix.lastIndexOf('.');
+            prefix = prefix.substring(0, sub);
+        } else {
+            prefix = prefix.replaceAll("\\.", "_");
+        }
+        fi.fileName = prefix;
+    }
+
     @Nullable
-    private static FileMimeInfo matchesMimeType(ContentResolver contentResolver, Uri path) {
+    private FileMimeInfo matchesMimeType(ContentResolver resolver, Uri path) {
         try {
             String mimeType;
             String scheme = path.getScheme();
             if (!TextUtils.isEmpty(scheme) && scheme.equals(ContentResolver.SCHEME_CONTENT)) {
-                mimeType = contentResolver.getType(path);
+                mimeType = resolver.getType(path);
             } else {
-                int dotsIndex = path.toString().lastIndexOf(".");
-                String fileExtension = path.toString().substring(dotsIndex + 1);
-                mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.toLowerCase());
+                File file = new File(path.getPath());
+                if (!file.exists()) {
+                    @SuppressLint("InlinedApi") // [isQForest] checked.
+                    Uri external = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    Uri result = queryContentUri(resolver, external, path);
+                    return matchesMimeType(resolver, result);
+                } else {
+                    String p = Constance.transformSpecialToNormal(file.getName());
+                    int dotsIndex = p.lastIndexOf(".");
+                    String fileExtension = p.substring(dotsIndex + 1);
+                    mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.toLowerCase());
+                }
             }
             if (TextUtils.isEmpty(mimeType)) return null;
             String suffix = "." + mimeType.split("/")[1];
             Pattern imagePattern = Pattern.compile("image/.*");
             Pattern videoPattern = Pattern.compile("video/.*");
             if (imagePattern.matcher(mimeType).matches()) {
-                return new FileMimeInfo(mimeType, suffix, FileMimeInfo.CONTENT_IMAGE);
+                return new FileMimeInfo(mimeType, suffix, FileInfo.CONTENT_IMAGE);
             } else if (videoPattern.matcher(mimeType).matches()) {
-                return new FileMimeInfo(mimeType, suffix, FileMimeInfo.CONTENT_VIDEO);
+                return new FileMimeInfo(mimeType, suffix, FileInfo.CONTENT_VIDEO);
             } else {
-                return new FileMimeInfo(mimeType, suffix, FileMimeInfo.CONTENT_FILE);
+                return new FileMimeInfo(mimeType, suffix, FileInfo.CONTENT_FILE);
             }
         } catch (Exception e) {
             CompressLog.e(e);

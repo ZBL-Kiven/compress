@@ -2,10 +2,6 @@ package com.zj.compress;
 
 final class FileMimeInfo {
 
-    static final int CONTENT_IMAGE = 0;
-    static final int CONTENT_VIDEO = 1;
-    static final int CONTENT_FILE = 2;
-
     String mimeType;
     String suffix;
     int contentType;
