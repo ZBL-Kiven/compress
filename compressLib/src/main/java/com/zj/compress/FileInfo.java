@@ -10,8 +10,9 @@ public class FileInfo {
     public static final int CONTENT_VIDEO = 1;
     public static final int CONTENT_FILE = 2;
 
-    FileInfo(Uri uri) {
+    FileInfo(Uri uri, long limited) {
         this.originalPath = uri;
+        this.limited = limited;
     }
 
     public FileInfo(Uri uri, String mimeType, String suffix, int contentType) {
@@ -22,6 +23,8 @@ public class FileInfo {
     public boolean fromTransFile = false;
 
     int w, h;
+
+    long limited = -1;
 
     long size, bitrate;
 
@@ -44,8 +47,8 @@ public class FileInfo {
 
     public static class ImageFileInfo extends FileInfo {
 
-        ImageFileInfo(Uri uri) {
-            super(uri);
+        ImageFileInfo(Uri uri, long limited) {
+            super(uri, limited);
         }
 
         public int getWidth() {
@@ -63,8 +66,8 @@ public class FileInfo {
 
     public static class VideoFileInfo extends ImageFileInfo {
 
-        VideoFileInfo(Uri uri) {
-            super(uri);
+        VideoFileInfo(Uri uri, long limited) {
+            super(uri, limited);
         }
 
         public long getBitrate() {

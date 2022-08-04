@@ -7,8 +7,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
-import androidx.core.util.Consumer;
-
 import com.zj.compress.images.ImageCompressBuilder;
 import com.zj.compress.videos.VideoCompressBuilder;
 
@@ -19,6 +17,7 @@ public class CompressUtils {
 
     private final Context context;
     private Uri originalUri;
+    private long limited = -1;
 
     public CompressUtils(Context context) {
         this.context = context.getApplicationContext();
@@ -49,21 +48,26 @@ public class CompressUtils {
         return this;
     }
 
+    public CompressUtils limit(long size) {
+        this.limited = size;
+        return this;
+    }
+
     public ImageCompressBuilder asImage() {
         if (originalUri == null) throw new NullPointerException("please call load() before!");
-        DataSource<FileInfo.ImageFileInfo> mDataSource = new DataSource<>(context, new FileInfo.ImageFileInfo(originalUri));
+        DataSource<FileInfo.ImageFileInfo> mDataSource = new DataSource<>(context, new FileInfo.ImageFileInfo(originalUri, limited));
         return new ImageCompressBuilder(context, mDataSource);
     }
 
     public VideoCompressBuilder asVideo() {
         if (originalUri == null) throw new NullPointerException("please call load() before!");
-        DataSource<FileInfo.VideoFileInfo> mDataSource = new DataSource<>(context, new FileInfo.VideoFileInfo(originalUri));
+        DataSource<FileInfo.VideoFileInfo> mDataSource = new DataSource<>(context, new FileInfo.VideoFileInfo(originalUri, limited));
         return new VideoCompressBuilder(context, mDataSource);
     }
 
-    public void transForAndroidQ(final Consumer<FileInfo> consumer) {
+    public void transForAndroidQ(final OnFileTransferListener<FileInfo> consumer) {
         if (originalUri == null) throw new NullPointerException("please call load() before!");
-        DataSource<FileInfo> mDataSource = new DataSource<>(context, new FileInfo(originalUri));
-        mDataSource.start((FileInfo info) -> new Handler(Looper.getMainLooper()).post(() -> consumer.accept(info)));
+        DataSource<FileInfo> mDataSource = new DataSource<>(context, new FileInfo(originalUri, limited));
+        mDataSource.start((info, e) -> new Handler(Looper.getMainLooper()).post(() -> consumer.onChanged(info, e)));
     }
 }

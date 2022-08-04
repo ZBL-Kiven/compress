@@ -11,31 +11,30 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 
-import androidx.core.util.Consumer;
+import androidx.annotation.Nullable;
 
 import java.io.File;
-
 
 public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResult<T> {
 
     public boolean fromTransFile;
     public final Context context;
-    private Consumer<T> onExecutor;
+    private OnFileTransferListener<T> onExecutor;
     public boolean compressEnable = true;
     public T fileInfo;
 
-    public DataSource(Context context, T fileInfo) {
+    DataSource(Context context, T fileInfo) {
         this.context = context;
         this.fileInfo = fileInfo;
     }
 
-    public void start(Consumer<T> onExecutor) {
+    public void start(OnFileTransferListener<T> onExecutor) {
         this.onExecutor = onExecutor;
         AsyncTask.SERIAL_EXECUTOR.execute(this);
     }
 
     @Override
-    public void onResult(T info) {
+    public void onResult(T info, @Nullable Throwable e) {
         if (info == null || info.path == null || info.path.isEmpty()) {
             CompressLog.e("failed to exchange file with path : " + ((info == null) ? " null" : info.originalPath.getPath()));
         }
@@ -44,7 +43,12 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
                 patchFileInfoFromUri(context, Uri.parse(info.path), info);
             }
             this.fileInfo = info;
-            onExecutor.accept(fileInfo);
+            long l = fileInfo.limited;
+            if (l > 0 && info.size > fileInfo.limited) {
+                onExecutor.onChanged(fileInfo, new FileOutOfSizeException(fileInfo.limited, "from file transformer"));
+            } else {
+                onExecutor.onChanged(fileInfo, e);
+            }
         }
     }
 
@@ -94,7 +98,7 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
         }
         if (!permissions) {
             CompressLog.e("permission denied for context : " + context + " !!");
-            onExecutor.accept(fileInfo);
+            onExecutor.onChanged(fileInfo, new IllegalArgumentException("permission denied for context : " + context + " !!"));
             return;
         }
         new ExchangeFile<>(this).exchange(context, fileInfo);

@@ -68,11 +68,11 @@ public class ImageCompressBuilder {
      * begin compress image with asynchronous
      */
     public void start(final CompressListener compressListener) {
-        dataSource.start(path -> new ImgCompressUtils(this, compressListener).launch(context));
+        dataSource.start((info, e) -> new ImgCompressUtils(this, compressListener).launch(context));
     }
 
     public void get(final CompressListener compressListener) {
-        dataSource.start(path -> {
+        dataSource.start((info, e) -> {
             File f = new ImgCompressUtils(this, compressListener).get(context);
             if (f != null && f.exists() && !f.isDirectory()) {
                 handler.post(() -> compressListener.onSuccess(f.getPath()));

@@ -19,7 +19,7 @@ import com.zj.compress.FileInfo;
 import java.lang.reflect.Field;
 
 @SuppressWarnings("unused")
-public class VideoCompressUtils {
+class VideoCompressUtils {
 
     private final VideoCompressBuilder config;
     private boolean using = false;

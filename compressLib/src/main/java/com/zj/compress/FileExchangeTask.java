@@ -86,7 +86,7 @@ class FileExchangeTask<T extends FileInfo> {
             } catch (IOException e) {
                 CompressLog.e(e);
             }
-            result.onResult(fi);
+            result.onResult(fi, null);
         }
     }
 

@@ -32,7 +32,7 @@ class ExchangeFile<T extends FileInfo> {
         }
         Uri origin = fileInfo.originalPath;
         if (origin == null) {
-            this.exchangeResult.onResult(fileInfo);
+            this.exchangeResult.onResult(fileInfo, new NullPointerException("the file originalPath is null!"));
             return;
         }
         ContentResolver resolver = context.getContentResolver();
@@ -62,10 +62,7 @@ class ExchangeFile<T extends FileInfo> {
                     fileInfo.fromTransFile = true;
                     new FileExchangeTask<>(context, fileInfo.mimeType.suffix, fileInfo, file.getPath(), exchangeResult);
                 } else {
-                    fileInfo.path = origin.getPath();
-                    fileInfo.fromTransFile = false;
-                    setFileNameFromOriginalPath(fileInfo);
-                    exchangeResult.onResult(fileInfo);
+                    onPatchPathFile(fileInfo, origin.getPath());
                 }
             } else if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
                 if (isQForest) {
@@ -75,10 +72,7 @@ class ExchangeFile<T extends FileInfo> {
                 } else {
                     Uri result = queryFileUri(context, origin);
                     if (result != null) {
-                        fileInfo.path = result.getPath();
-                        fileInfo.fromTransFile = false;
-                        setFileNameFromOriginalPath(fileInfo);
-                        exchangeResult.onResult(fileInfo);
+                        onPatchPathFile(fileInfo, result.getPath());
                     } else {
                         fileInfo.originalPath = origin;
                         fileInfo.fromTransFile = true;
@@ -88,8 +82,15 @@ class ExchangeFile<T extends FileInfo> {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            exchangeResult.onResult(null);
+            exchangeResult.onResult(null, e);
         }
+    }
+
+    private void onPatchPathFile(T fileInfo, String result) {
+        fileInfo.path = result;
+        fileInfo.fromTransFile = false;
+        setFileNameFromOriginalPath(fileInfo);
+        exchangeResult.onResult(fileInfo, null);
     }
 
     private Uri queryContentUri(ContentResolver resolver, Uri external, Uri uri) {
