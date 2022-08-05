@@ -70,9 +70,9 @@ class MainActivity : FragmentActivity() {
         findViewById<View>(R.id.btn_start).setOnClickListener {
             startTime = System.currentTimeMillis()
             curSelectFile?.let {
-                when (it.contentType) {
-                    com.zj.compress.FileInfo.CONTENT_IMAGE -> startCompressImage(Uri.parse(it.path))
-                    com.zj.compress.FileInfo.CONTENT_VIDEO -> startCompressVideo(Uri.parse(it.path))
+                when (it.suffix) {
+                    "jpeg", "jpg", "png" -> startCompressImage(Uri.parse(it.path))
+                    "mp4" -> startCompressVideo(Uri.parse(it.path))
                     else -> {
                         Toast.makeText(this, "${it.suffix} cannot to compress by here!", Toast.LENGTH_SHORT).show()
                     }
@@ -178,9 +178,7 @@ class MainActivity : FragmentActivity() {
         AlbumIns.with(this).setOriginalPolymorphism(true).simultaneousSelection(true).maxSelectedCount(1).start { _, data ->
             val f = data?.get(0)
             val mimeType = f?.mimeType
-            val suffix = f?.mimeType
-            val contentType = if (f?.isImage == true || f?.isGif == true) com.zj.compress.FileInfo.CONTENT_IMAGE else com.zj.compress.FileInfo.CONTENT_VIDEO
-            curSelectFile = com.zj.compress.FileInfo(f?.getContentUri(), mimeType, suffix, contentType)
+            curSelectFile = com.zj.compress.FileInfo(f?.getContentUri(), mimeType)
             tvType?.text = f?.mimeType
             tvStartSize?.text = ""
             tvEndSize?.text = ""

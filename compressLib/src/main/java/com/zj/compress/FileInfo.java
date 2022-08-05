@@ -6,46 +6,46 @@ import android.net.Uri;
 @SuppressWarnings("unused")
 public class FileInfo {
 
-    public static final int CONTENT_IMAGE = 0;
-    public static final int CONTENT_VIDEO = 1;
-    public static final int CONTENT_FILE = 2;
-
     FileInfo(Uri uri, long limited) {
         this.originalPath = uri;
         this.limited = limited;
     }
 
-    public FileInfo(Uri uri, String mimeType, String suffix, int contentType) {
-        this.originalPath = uri;
-        this.mimeType = new FileMimeInfo(mimeType, suffix, contentType);
+    FileInfo(FileInfo info) {
+        this.limited = info.limited;
+        this.originalPath = info.originalPath;
+        this.path = info.path;
+        this.fileName = info.fileName;
+        this.suffix = info.suffix;
+        this.size = info.size;
+        this.fromTransFile = info.fromTransFile;
     }
 
-    public boolean fromTransFile = false;
-
-    int w, h;
+    public FileInfo(Uri uri, String suffix) {
+        this.originalPath = uri;
+        this.suffix = suffix;
+    }
 
     long limited = -1;
 
-    long size, bitrate;
+    long size = 0;
 
-    public String fileName;
-
-    public String path;
+    public boolean fromTransFile = false;
 
     public Uri originalPath;
 
-    FileMimeInfo mimeType;
+    public String path;
 
-    public String getSuffix() {
-        return mimeType.suffix;
-    }
+    public String fileName;
 
-    public int getContentType() {
-        return mimeType.contentType;
-    }
+    public String suffix;
 
 
     public static class ImageFileInfo extends FileInfo {
+
+        int w = 0, h = 0;
+
+        ImageFileInfo(FileInfo info) {super(info);}
 
         ImageFileInfo(Uri uri, long limited) {
             super(uri, limited);
@@ -65,6 +65,9 @@ public class FileInfo {
     }
 
     public static class VideoFileInfo extends ImageFileInfo {
+        long bitrate = 0;
+
+        VideoFileInfo(FileInfo info) {super(info);}
 
         VideoFileInfo(Uri uri, long limited) {
             super(uri, limited);

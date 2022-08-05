@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResult<T> {
 
@@ -34,13 +35,22 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onResult(T info, @Nullable Throwable e) {
         if (info == null || info.path == null || info.path.isEmpty()) {
             CompressLog.e("failed to exchange file with path : " + ((info == null) ? " null" : info.originalPath.getPath()));
         }
         if (onExecutor != null) {
             if (info != null) {
-                patchFileInfoFromUri(context, Uri.parse(info.path), info);
+                Uri path = Uri.parse(info.path);
+                FileInfo f = parseFileInfo(path, info);
+                if (info instanceof FileInfo.VideoFileInfo && f instanceof FileInfo.VideoFileInfo) {
+                    info = (T) f;
+                } else if (info instanceof FileInfo.ImageFileInfo && f instanceof FileInfo.ImageFileInfo) {
+                    info = (T) f;
+                } else {
+                    info = (T) f;
+                }
             }
             this.fileInfo = info;
             long l = fileInfo.limited;
@@ -52,42 +62,74 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
         }
     }
 
-    private void patchFileInfoFromUri(Context context, Uri uri, FileInfo fileInfo) {
-        if (fileInfo.mimeType.contentType == FileInfo.CONTENT_IMAGE) {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            try {
-                BitmapFactory.decodeFile(uri.getPath(), options);
-                fileInfo.w = options.outWidth;
-                fileInfo.h = options.outHeight;
-                fileInfo.size = new File(uri.getPath()).length();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+    private FileInfo parseFileInfo(Uri path, T info) {
+        try {
+            File f = new File(path.getPath());
+            if (f.exists()) {
+                int index = f.getName().lastIndexOf(".");
+                info.suffix = f.getName().substring(index);
             }
-        } else if (fileInfo.mimeType.contentType == FileInfo.CONTENT_VIDEO) {
-            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(context, uri);
-            String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
-            String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
-            String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-            fileInfo.w = Integer.parseInt(width);
-            fileInfo.h = Integer.parseInt(height);
-            fileInfo.bitrate = Long.parseLong(bitrate);
-            fileInfo.size = Long.parseLong(duration) * 1000L;
-        } else {
-            Cursor cursor = null;
-            try {
-                String[] projection = new String[]{MediaStore.Files.FileColumns.SIZE};
-                cursor = context.getContentResolver().query(uri, projection, null, null, null);
-                if (cursor != null && cursor.moveToFirst()) {
-                    int columnS = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
-                    fileInfo.size = cursor.getLong(columnS);
+            if (info.suffix != null) {
+                Pattern imagePattern = Pattern.compile("image/.*");
+                Pattern videoPattern = Pattern.compile("video/.*");
+                if (imagePattern.matcher(info.suffix).matches()) {
+                    return patchImageInfo(info, path);
+                } else if (videoPattern.matcher(info.suffix).matches()) {
+                    return patchVideoInfo(info, path);
+                } else {
+                    return patchFileInfo(info, path);
                 }
-            } finally {
-                if (cursor != null) cursor.close();
             }
+        } catch (Exception e) {
+            CompressLog.e(e);
         }
+        return info;
+    }
+
+    private FileInfo.ImageFileInfo patchImageInfo(FileInfo info, Uri uri) {
+        FileInfo.ImageFileInfo fileInfo = new FileInfo.ImageFileInfo(info);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        try {
+            BitmapFactory.decodeFile(uri.getPath(), options);
+            fileInfo.w = options.outWidth;
+            fileInfo.h = options.outHeight;
+            fileInfo.size = new File(uri.getPath()).length();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileInfo;
+    }
+
+    private FileInfo.VideoFileInfo patchVideoInfo(FileInfo info, Uri uri) {
+        FileInfo.VideoFileInfo fileInfo = new FileInfo.VideoFileInfo(info);
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        retriever.setDataSource(context, uri);
+        String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+        String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+        String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        String bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
+        fileInfo.w = Integer.parseInt(width);
+        fileInfo.h = Integer.parseInt(height);
+        fileInfo.bitrate = Long.parseLong(bitrate);
+        fileInfo.size = Long.parseLong(duration) * 1000L;
+        return fileInfo;
+    }
+
+    private FileInfo patchFileInfo(FileInfo fileInfo, Uri uri) {
+        Cursor cursor = null;
+        try {
+            String[] projection = new String[]{MediaStore.Files.FileColumns.SIZE};
+            cursor = context.getContentResolver().query(uri, projection, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnS = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
+                fileInfo.size = cursor.getLong(columnS);
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return fileInfo;
     }
 
     @Override

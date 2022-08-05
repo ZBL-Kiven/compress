@@ -18,14 +18,13 @@ class FileExchangeTask<T extends FileInfo> {
     final OnExchangeResult<T> result;
     final String outputPath;
     final T fi;
-    final String suffix;
     final Context context;
 
-    public FileExchangeTask(Context context, String suffix, T input, String outputPath, OnExchangeResult<T> result) {
+    public FileExchangeTask(Context context, T input, String outputPath, OnExchangeResult<T> result) {
         this.result = result;
         this.context = context;
         this.fi = input;
-        this.suffix = suffix;
+        //        this.suffix = suffix;
         this.outputPath = outputPath;
         CompressLog.d("In order to get enough files available, we make an accessible copy in the application cache directory, you can delete it with new File(path).delete() after use.");
         run();
@@ -36,26 +35,21 @@ class FileExchangeTask<T extends FileInfo> {
         FileInputStream fis = null;
         OutputStream to = null;
         try {
-            String prefix = null;
+            String suffix = null;
             Uri uri = fi.originalPath;
-            try (Cursor cursor = contentResolver.query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+            String[] projection = new String[]{MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE};
+            try (Cursor cursor = contentResolver.query(uri, projection, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     int index = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-                    prefix = cursor.getString(index);
-                    if (prefix.contains(suffix)) {
-                        prefix = prefix.replace(suffix, "");
-                    } else if (prefix.contains(".") && !prefix.startsWith(".")) {
-                        int sub = prefix.lastIndexOf('.');
-                        prefix = prefix.substring(0, sub);
-                    } else {
-                        prefix = prefix.replaceAll("\\.", "_");
-                    }
+                    int indexMime = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE);
+                    fi.fileName = cursor.getString(index);
+                    String mime = cursor.getString(indexMime);
+                    suffix = Constance.transformSuffix(mime);
                 }
             }
-            if (prefix == null || prefix.isEmpty()) {
-                prefix = "transform_" + System.currentTimeMillis();
+            if (fi.fileName == null || fi.fileName.isEmpty()) {
+                fi.fileName = "transform_" + System.currentTimeMillis() + (suffix == null ? ".unknown" : suffix);
             }
-            fi.fileName = prefix;
             ParcelFileDescriptor descriptor = contentResolver.openFileDescriptor(uri, "r");
             if (descriptor == null) {
                 return;
@@ -67,16 +61,15 @@ class FileExchangeTask<T extends FileInfo> {
             if (!file.mkdirs() && !file.exists()) {
                 return;
             }
-            String fileName = prefix + suffix;
-            File f1 = getGUFile(file, fileName, 0);
-            if (f1 == null) throw new NullPointerException("Cannot create file for path : " + file.getPath() + fileName);
+            File f1 = getGUFile(file, fi.fileName, 0);
+            if (f1 == null) throw new NullPointerException("Cannot create file for path : " + file.getPath() + fi.fileName);
             to = new FileOutputStream(f1);
             byte[] b = new byte[1024];
             int c;
             while ((c = fis.read(b)) > 0) {
                 to.write(b, 0, c);
             }
-            fi.path = Uri.parse(filePath + fileName).getPath();
+            fi.path = Uri.parse(filePath + fi.fileName).getPath();
         } catch (Exception e) {
             CompressLog.e(e);
         } finally {
