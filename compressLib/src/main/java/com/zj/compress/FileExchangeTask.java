@@ -18,12 +18,14 @@ class FileExchangeTask<T extends FileInfo> {
     final OnExchangeResult<T> result;
     final String outputPath;
     final T fi;
+    final long limited;
     final Context context;
 
     public FileExchangeTask(Context context, T input, String outputPath, OnExchangeResult<T> result) {
         this.result = result;
         this.context = context;
         this.fi = input;
+        this.limited = fi.limited;
         this.outputPath = outputPath;
         CompressLog.d("In order to get enough files available, we make an accessible copy in the application cache directory, you can delete it with new File(path).delete() after use.");
         run();
@@ -33,24 +35,31 @@ class FileExchangeTask<T extends FileInfo> {
         ContentResolver contentResolver = context.getContentResolver();
         FileInputStream fis = null;
         OutputStream to = null;
+        Throwable exc = null;
         try {
             String suffix = null;
             Uri uri = fi.originalPath;
-            String[] projection = new String[]{MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE};
+            String[] projection = new String[]{MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE, MediaStore.MediaColumns.SIZE};
             try (Cursor cursor = contentResolver.query(uri, projection, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     int index = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
                     int indexMime = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE);
+                    int indexSize = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE);
                     fi.fileName = cursor.getString(index);
                     String mime = cursor.getString(indexMime);
+                    fi.size = cursor.getLong(indexSize);
                     suffix = Constance.transformSuffix(mime);
                 }
+            }
+            if (limited > 0 && fi.size >= limited) {
+                return;
             }
             if (fi.fileName == null || fi.fileName.isEmpty()) {
                 fi.fileName = "transform_" + System.currentTimeMillis() + (suffix == null ? ".unknown" : suffix);
             }
             ParcelFileDescriptor descriptor = contentResolver.openFileDescriptor(uri, "r");
             if (descriptor == null) {
+                exc = new IllegalArgumentException("the file-descriptor could not be null!");
                 return;
             }
             FileDescriptor fd = descriptor.getFileDescriptor();
@@ -70,6 +79,7 @@ class FileExchangeTask<T extends FileInfo> {
             }
             fi.path = Uri.parse(filePath + fi.fileName).getPath();
         } catch (Exception e) {
+            exc = e;
             CompressLog.e(e);
         } finally {
             try {
@@ -78,7 +88,7 @@ class FileExchangeTask<T extends FileInfo> {
             } catch (IOException e) {
                 CompressLog.e(e);
             }
-            result.onResult(fi, null);
+            result.onResult(fi, exc);
         }
     }
 

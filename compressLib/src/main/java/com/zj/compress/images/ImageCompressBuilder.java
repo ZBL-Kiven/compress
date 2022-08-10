@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.zj.compress.BaseCompressBuilder;
+import com.zj.compress.CompressUtils;
 import com.zj.compress.DataSource;
 import com.zj.compress.FileInfo;
 
@@ -49,11 +50,15 @@ public class ImageCompressBuilder extends BaseCompressBuilder {
      * begin compress image with asynchronous
      */
     public void start(final CompressListener compressListener) {
-        dataSource.start((info, e) -> new ImgCompressUtils(this, compressListener).launch());
+        dataSource.start((info, e) -> {
+            CompressUtils.le(info, e);
+            new ImgCompressUtils(this, compressListener).launch();
+        });
     }
 
     public void get(final CompressListener compressListener) {
         dataSource.start((info, e) -> {
+            CompressUtils.le(info, e);
             File f = new ImgCompressUtils(this, compressListener).get();
             if (f != null && f.exists() && !f.isDirectory()) {
                 handler.post(() -> compressListener.onSuccess(f.getPath()));

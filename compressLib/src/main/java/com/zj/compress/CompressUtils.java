@@ -73,6 +73,15 @@ public class CompressUtils {
     public void transForAndroidQ(final OnFileTransferListener<FileInfo> consumer) {
         if (originalUri == null) throw new NullPointerException("please call load() before!");
         DataSource<FileInfo> mDataSource = new DataSource<>(context, new FileInfo(originalUri, limited));
-        mDataSource.start((info, e) -> new Handler(Looper.getMainLooper()).post(() -> consumer.onChanged(info, e)));
+        mDataSource.start((info, e) -> {
+            le(info, e);
+            new Handler(Looper.getMainLooper()).post(() -> consumer.onChanged(info, e));
+        });
+    }
+
+    public static void le(FileInfo info, Throwable e) {
+        if (info == null || info.path == null || info.path.isEmpty()) {
+            CompressLog.e("failed to transform file with path : " + ((info == null) ? " null" : info.originalPath.getPath()) + "  case : " + (e == null ? "" : e.getMessage()));
+        }
     }
 }

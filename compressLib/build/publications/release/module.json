@@ -3,7 +3,7 @@
   "component": {
     "group": "com.cc.android",
     "module": "compress-SNAPSHOT",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "attributes": {
       "org.gradle.status": "release"
     }
@@ -24,13 +24,13 @@
       },
       "files": [
         {
-          "name": "compress-1.2.2.aar",
-          "url": "compress-1.2.2.aar",
-          "size": 1291055,
-          "sha512": "2cdace029aadd357181075e7fbbc932bdad073d53d58624845ce0ed18a0b9965ae8c2524f17401525a56647e2ed1934e9bd82789ffce18a903e2a0c5342d9615",
-          "sha256": "3ee50229c913ee866c05c2f7ac02357ae1c360cfa6a3547c036212a793e3b331",
-          "sha1": "ca7bbed064b3ec695b3ab1cf8560c8c91a0981fc",
-          "md5": "37fb2e9ceb690691f8c5037f3941abe0"
+          "name": "compress-1.2.3.aar",
+          "url": "compress-1.2.3.aar",
+          "size": 1290800,
+          "sha512": "d2b58e9f3dd857906698ebf2e1765e0f96ff5ab262535a34e0f8a1011a7785551bbe3c4816ae935ca0b3618f17478e79c9cc733efe59fd5165830924bf1789dc",
+          "sha256": "5bd042133a452027726b670c71485bedb129b8608d71ef136bd6fc0100bcf94e",
+          "sha1": "f177779a71dc585266f7055fa7f6463ae91be617",
+          "md5": "53b128ff4e4f4280f5f34be3e3dd4fc0"
         }
       ]
     },
@@ -60,13 +60,13 @@
       ],
       "files": [
         {
-          "name": "compress-1.2.2.aar",
-          "url": "compress-1.2.2.aar",
-          "size": 1291055,
-          "sha512": "2cdace029aadd357181075e7fbbc932bdad073d53d58624845ce0ed18a0b9965ae8c2524f17401525a56647e2ed1934e9bd82789ffce18a903e2a0c5342d9615",
-          "sha256": "3ee50229c913ee866c05c2f7ac02357ae1c360cfa6a3547c036212a793e3b331",
-          "sha1": "ca7bbed064b3ec695b3ab1cf8560c8c91a0981fc",
-          "md5": "37fb2e9ceb690691f8c5037f3941abe0"
+          "name": "compress-1.2.3.aar",
+          "url": "compress-1.2.3.aar",
+          "size": 1290800,
+          "sha512": "d2b58e9f3dd857906698ebf2e1765e0f96ff5ab262535a34e0f8a1011a7785551bbe3c4816ae935ca0b3618f17478e79c9cc733efe59fd5165830924bf1789dc",
+          "sha256": "5bd042133a452027726b670c71485bedb129b8608d71ef136bd6fc0100bcf94e",
+          "sha1": "f177779a71dc585266f7055fa7f6463ae91be617",
+          "md5": "53b128ff4e4f4280f5f34be3e3dd4fc0"
         }
       ]
     }

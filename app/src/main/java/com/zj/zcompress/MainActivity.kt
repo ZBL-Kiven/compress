@@ -104,7 +104,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun transaction(uri: Uri?) {
-        CompressUtils.with(this).load(uri).transForAndroidQ { info, e ->
+        CompressUtils.with(this).limit(2048000L).load(uri).transForAndroidQ { info, e ->
             if (info?.path != null) {
                 curSelectFile = info
                 setData(info)

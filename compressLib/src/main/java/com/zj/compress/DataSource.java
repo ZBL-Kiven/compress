@@ -37,11 +37,8 @@ public class DataSource<T extends FileInfo> implements Runnable, OnExchangeResul
     @Override
     @SuppressWarnings("unchecked")
     public void onResult(T info, @Nullable Throwable e) {
-        if (info == null || info.path == null || info.path.isEmpty()) {
-            CompressLog.e("failed to exchange file with path : " + ((info == null) ? " null" : info.originalPath.getPath()));
-        }
         if (onExecutor != null) {
-            if (info != null) {
+            if (info != null && info.path != null) {
                 Uri path = Uri.parse(info.path);
                 FileInfo f = parseFileInfo(path, info);
                 if (info instanceof FileInfo.VideoFileInfo && f instanceof FileInfo.VideoFileInfo) {

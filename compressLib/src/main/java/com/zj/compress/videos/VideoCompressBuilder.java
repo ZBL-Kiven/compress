@@ -1,10 +1,13 @@
 package com.zj.compress.videos;
 
 import android.content.Context;
+
 import androidx.annotation.IntRange;
+
 import java.io.File;
 
 import com.zj.compress.BaseCompressBuilder;
+import com.zj.compress.CompressUtils;
 import com.zj.compress.DataSource;
 import com.zj.compress.FileInfo;
 
@@ -25,6 +28,9 @@ public class VideoCompressBuilder extends BaseCompressBuilder {
     }
 
     public void start(final CompressListener listener) {
-        dataSource.start((info, e) -> new VideoCompressUtils(this, listener));
+        dataSource.start((info, e) -> {
+            CompressUtils.le(info, e);
+            new VideoCompressUtils(this, listener);
+        });
     }
 }
