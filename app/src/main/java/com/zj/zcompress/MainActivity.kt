@@ -71,8 +71,8 @@ class MainActivity : FragmentActivity() {
             startTime = System.currentTimeMillis()
             curSelectFile?.let {
                 when (it.suffix) {
-                    "jpeg", "jpg", "png" -> startCompressImage(Uri.parse(it.path))
-                    "mp4" -> startCompressVideo(Uri.parse(it.path))
+                    ".jpeg", ".jpg", ".png" -> startCompressImage(Uri.parse(it.path))
+                    ".mp4" -> startCompressVideo(Uri.parse(it.path))
                     else -> {
                         Toast.makeText(this, "${it.suffix} cannot to compress by here!", Toast.LENGTH_SHORT).show()
                     }
@@ -141,7 +141,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun startCompressVideo(uri: Uri) {
-        CompressUtils.with(this).load(uri).asVideo().setLevel(1600).setOutPutFileName("/file/${System.currentTimeMillis()}.mp4").start(object : CompressListener {
+        CompressUtils.with(this).load(uri).asVideo().setLevel(1600).start(object : CompressListener {
 
             override fun onSuccess(var1: String?) {
                 var1?.let {

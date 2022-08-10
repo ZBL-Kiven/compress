@@ -24,7 +24,6 @@ class FileExchangeTask<T extends FileInfo> {
         this.result = result;
         this.context = context;
         this.fi = input;
-        //        this.suffix = suffix;
         this.outputPath = outputPath;
         CompressLog.d("In order to get enough files available, we make an accessible copy in the application cache directory, you can delete it with new File(path).delete() after use.");
         run();

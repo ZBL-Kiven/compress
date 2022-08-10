@@ -33,22 +33,6 @@ class Checker {
         return format.contains(suffix.toLowerCase());
     }
 
-    static boolean isJPG(String path) {
-        if (TextUtils.isEmpty(path)) {
-            return false;
-        }
-
-        String suffix = path.substring(path.lastIndexOf(".")).toLowerCase();
-        return suffix.contains(JPG) || suffix.contains(JPEG);
-    }
-
-    static String checkSuffix(String path) {
-        if (TextUtils.isEmpty(path)) {
-            return ".JPEG";
-        }
-        return path.substring(path.lastIndexOf("."));
-    }
-
     static boolean isNeedCompress(int leastCompressSize, String path) {
         if (leastCompressSize > 0) {
             File source = new File(path);
@@ -56,7 +40,7 @@ class Checker {
                 return false;
             }
 
-            return source.length() > (leastCompressSize << 10);
+            return source.length() > ((long) leastCompressSize << 10);
         }
         return true;
     }

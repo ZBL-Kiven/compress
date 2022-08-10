@@ -2,6 +2,8 @@ package com.zj.compress;
 
 import android.net.Uri;
 
+import java.util.Locale;
+
 
 @SuppressWarnings("unused")
 public class FileInfo {
@@ -23,7 +25,7 @@ public class FileInfo {
 
     public FileInfo(Uri uri, String suffix) {
         this.originalPath = uri;
-        this.suffix = suffix;
+        this.suffix = Constance.transformSuffix(suffix).toLowerCase(Locale.ROOT);
     }
 
     long limited = -1;
@@ -38,8 +40,11 @@ public class FileInfo {
 
     public String fileName;
 
-    public String suffix;
+    String suffix;
 
+    public String getSuffix() {
+        return suffix.toLowerCase(Locale.ROOT);
+    }
 
     public static class ImageFileInfo extends FileInfo {
 
@@ -76,6 +81,5 @@ public class FileInfo {
         public long getBitrate() {
             return bitrate;
         }
-
     }
 }

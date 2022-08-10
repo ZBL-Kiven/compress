@@ -19,6 +19,11 @@ public class CompressUtils {
     private Uri originalUri;
     private long limited = -1;
 
+    public static void setOutputDir(String dir) {
+        if (!dir.endsWith("/")) dir += "/";
+        BaseCompressBuilder.mOutPath = dir;
+    }
+
     public CompressUtils(Context context) {
         this.context = context.getApplicationContext();
     }

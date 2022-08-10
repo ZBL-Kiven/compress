@@ -8,12 +8,12 @@ import java.util.Locale;
 import java.util.Map;
 
 @SuppressWarnings("unused")
-public class Constance {
+class Constance {
 
     static Map<String, String[]> mimeTable;
     static Map<String, String> specialTransferMimeTable;
 
-    public static String getIMEType(String fileName) {
+    static String getIMEType(String fileName) {
         String type = "*/*";
         int dotIndex = fileName.lastIndexOf(".");
         if (dotIndex < 0) {
@@ -24,7 +24,7 @@ public class Constance {
             return type;
         }
         for (Map.Entry<String, String[]> entry : getMimeTable().entrySet()) {
-            if (end.equals(entry.getKey())) {
+            if (end.equalsIgnoreCase(entry.getKey())) {
                 type = entry.getValue()[0];
                 break;
             }
@@ -32,24 +32,29 @@ public class Constance {
         return type;
     }
 
-    public static String transformSuffix(String type) {
+    static String transformSuffix(String type) {
         for (Map.Entry<String, String[]> e : getMimeTable().entrySet()) {
             for (String s : e.getValue()) {
-                if (s.equals(type)) return e.getKey();
+                if (s.equalsIgnoreCase(type)) return e.getKey();
             }
         }
         String res;
         res = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
         if (res == null) {
             try {
-                res = "." + type.split("/")[0];
+                String sf;
+                String[] s = type.split("/");
+                if (s.length > 1) {
+                    sf = s[1];
+                    res = (!sf.startsWith(".")) ? "." + sf : sf;
+                }
             } catch (Exception ignored) {
             }
         }
         return res == null ? type : res;
     }
 
-    public static Map<String, String[]> getMimeTable() {
+    static Map<String, String[]> getMimeTable() {
         if (mimeTable == null) {
             mimeTable = new HashMap<>();
             mimeTable.put(".3gp", new String[]{"video/3gpp"});

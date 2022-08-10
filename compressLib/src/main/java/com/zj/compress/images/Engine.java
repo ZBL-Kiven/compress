@@ -15,7 +15,7 @@ import androidx.exifinterface.media.ExifInterface;
  * Responsible for starting compress and managing active and cached resources.
  */
 class Engine {
-    private ExifInterface srcExif;
+    private final ExifInterface srcExif;
     private final String srcImg;
     private final File tagImg;
     private final int quality;
@@ -23,9 +23,7 @@ class Engine {
     private int srcHeight;
 
     Engine(String srcImg, File tagImg, int sampleSize, int quality) throws IOException {
-        if (Checker.isJPG(srcImg)) {
-            this.srcExif = new ExifInterface(srcImg);
-        }
+        this.srcExif = new ExifInterface(srcImg);
         this.quality = quality;
         this.tagImg = tagImg;
         this.srcImg = srcImg;

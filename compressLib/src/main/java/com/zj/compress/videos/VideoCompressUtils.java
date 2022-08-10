@@ -109,7 +109,6 @@ class VideoCompressUtils {
                 break;
             default:
                 s = "UN_KNOW_ERROR";
-
         }
         return new Pair<>(code, s);
     }
@@ -155,7 +154,11 @@ class VideoCompressUtils {
 
     private void startCompress(int width, int height) {
         try {
-            PLShortVideoTranscoder mShortVideoTranscoder = new PLShortVideoTranscoder(this.config.context, getPath(), this.config.getOutPath());
+            String fileName = config.dataSource.fileInfo.fileName;
+            if (fileName == null || fileName.isEmpty()) {
+                sendError(-100);
+            }
+            PLShortVideoTranscoder mShortVideoTranscoder = new PLShortVideoTranscoder(this.config.context, getPath(), this.config.getOutDir(fileName).getPath());
             mShortVideoTranscoder.setMaxFrameRate(25);
             mShortVideoTranscoder.transcode(width, height, this.config.mCompressLevel, new PLVideoSaveListener() {
 
