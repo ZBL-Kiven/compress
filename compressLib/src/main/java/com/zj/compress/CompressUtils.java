@@ -84,4 +84,8 @@ public class CompressUtils {
             CompressLog.e("failed to transform file with path : " + ((info == null) ? " null" : info.originalPath.getPath()) + "  case : " + (e == null ? "" : e.getMessage()));
         }
     }
+
+    public static String getIMEType(String fileName) {
+        return Constance.getIMEType(fileName);
+    }
 }
